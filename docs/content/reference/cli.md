@@ -493,6 +493,19 @@ The CLI additionally reads these environment variables:
 | `AWS_ENDPOINT_URL` | Custom endpoint for S3-compatible services (MinIO, LocalStack, R2, etc.) |
 | `AWS_PATH_STYLE` | Set to `true` to use path-style access (required by some S3-compatible services) |
 
+## Compression libraries
+
+The native binary contains the native libraries for the Snappy, ZSTD, LZ4 and Brotli codecs. On startup it writes them to the first usable one of these directories and loads them from there:
+
+| Directory | Used when |
+|-----------|-----------|
+| `<temp dir>/hardwood-<user>/`, where `<temp dir>` is `/tmp` on Linux, `$TMPDIR` on macOS and `%TEMP%` on Windows | the default |
+| `~/.hardwood/` | libraries in the temp directory cannot be loaded, e.g. because it is mounted `noexec` |
+
+A directory is used only if neither group nor others can write to it; a missing one is created with owner-only permissions. Later runs, including runs of newer Hardwood versions, reuse a file as long as the library it contains is unchanged.
+
+To load the libraries from a directory of your own instead, set `HARDWOOD_LIB_PATH` to that directory. A codec whose library is not in it falls back to the one contained in the binary.
+
 ## Shell Completion
 
 The distribution includes completion scripts for Bash, Zsh, and Fish under `bin/`:

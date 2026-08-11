@@ -127,18 +127,13 @@ jobs:
           name: ${{ matrix.artifact }}
           path: linux-artifact
 
-      - name: 'Extract binary, completion script and codec libraries from tarball'
+      - name: 'Extract binary and completion script from tarball'
         run: |
-          mkdir -p cli/target cli/target/native-libs
+          mkdir -p cli/target
           tar -xzf linux-artifact/*.tar.gz --wildcards --strip-components=2 \
             -C cli/target \
             '*/bin/hardwood' '*/bin/hardwood_completion'
           mv cli/target/hardwood cli/target/hardwood-cli
-          # Codec native libraries (zstd/snappy/lz4) live under lib/ in the dist;
-          # the Dockerfile copies them to /usr/local/lib so the loader finds them.
-          tar -xzf linux-artifact/*.tar.gz --wildcards --strip-components=2 \
-            -C cli/target/native-libs \
-            '*/lib/*'
 
       - name: 'Log in to GitHub Container Registry'
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3.7.0 — https://github.com/docker/login-action/releases/tag/v3.7.0

@@ -52,13 +52,4 @@
             <filtered>false</filtered>
         </file>
     </files>
-    <fileSets>
-        <fileSet>
-            <directory>${project.build.directory}/native-libs</directory>
-            <outputDirectory>./lib</outputDirectory>
-            <includes>
-                <include>*</include>
-            </includes>
-        </fileSet>
-    </fileSets>
 </assembly>

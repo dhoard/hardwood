@@ -47,28 +47,27 @@ done
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BINARY="$REPO_ROOT/cli/target/hardwood-cli"
 COMPLETION="$REPO_ROOT/cli/target/hardwood_completion"
-LIBS_DIR="$REPO_ROOT/cli/target/native-libs"
 IMAGE_NAME="ghcr.io/hardwood-hq/hardwood:${IMAGE_TAG}"
 
-# A dist usable by the image is a Linux ELF binary, the completion script, and the
-# Linux codec libraries (*.so). Check the ELF magic (0x7f 'E' 'L' 'F') so a host
+# A dist usable by the image is a Linux ELF binary (with the codec native libraries
+# embedded) and the completion script. Check the ELF magic (0x7f 'E' 'L' 'F') so a host
 # build (e.g. a macOS Mach-O) is never mistaken for a usable dist.
 is_linux_elf() {
   [ -f "$1" ] && [ "$(head -c 4 "$1" 2>/dev/null | od -An -tx1 | tr -d ' \n')" = "7f454c46" ]
 }
 
 dist_ready() {
-  is_linux_elf "$BINARY" && [ -f "$COMPLETION" ] && ls "$LIBS_DIR"/*.so >/dev/null 2>&1
+  is_linux_elf "$BINARY" && [ -f "$COMPLETION" ]
 }
 
-# Build the full native dist (binary + codec libraries) for the image:
-#   - the codec libraries are prebuilt platform binaries shipped inside the
-#     dependency JARs, so pin the Linux variants explicitly rather than letting the
-#     os-* Maven profiles pick by host;
+# Build the native dist for the image:
+#   - the codec libraries embedded in the binary are prebuilt platform binaries
+#     shipped inside the dependency JARs, so pin the Linux variants explicitly
+#     rather than letting the os-* Maven profiles pick by host;
 #   - native integration tests are skipped: this build feeds the image, and the
 #     native profile's ITs run in their own CI job.
 build_dist() {
-  echo "Building the native dist (Linux binary + codec libraries)..."
+  echo "Building the native dist (Linux binary)..."
   echo "This may take several minutes."
   echo ""
   cd "$REPO_ROOT"
@@ -97,15 +96,14 @@ echo ""
 if [ "$FORCE_REBUILD" = true ] || ! dist_ready; then
   build_dist
 else
-  echo "Using existing Linux native dist in cli/target (binary, completion, native-libs)."
+  echo "Using existing Linux native dist in cli/target (binary, completion)."
   echo "(Use -f/--force to rebuild)"
   echo ""
 fi
 
 if ! dist_ready; then
   echo "Error: native dist is incomplete after the build."
-  echo "Expected a Linux ELF at cli/target/hardwood-cli, cli/target/hardwood_completion,"
-  echo "and codec libraries (*.so) in cli/target/native-libs."
+  echo "Expected a Linux ELF at cli/target/hardwood-cli and cli/target/hardwood_completion."
   exit 1
 fi
 

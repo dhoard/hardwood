@@ -22,11 +22,6 @@ ENV PATH=/usr/local/bin:$PATH
 # Copy pre-built native executable from the Maven target directory.
 COPY target/hardwood-cli /usr/local/bin/hardwood
 
-# Copy the codec native libraries (zstd/snappy/lz4) to where NativeLibraryLoader
-# looks (<exeDir>/../lib, i.e. /usr/local/lib) so the image can read compressed
-# Parquet. Without these only uncompressed files are readable.
-COPY target/native-libs/ /usr/local/lib/
-
 # Install the self-contained picocli completion script as a profile.d snippet, so
 # every interactive login shell registers `hardwood` tab completion automatically.
 COPY target/hardwood_completion /etc/profile.d/hardwood-completion.sh
